@@ -77,7 +77,7 @@ export class CexClient extends BasicMultiClient {
      */
     constructor(options: CexClientOptions) {
         super();
-        this._clients = new Map();
+        this._marketsToClients = new Map();
 
         this.name = "CEX_MULTI";
         this.options = options;

@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { BasicClient } from "../BasicClient";
+import { BasicMultiClient, MultiClientOptions } from "../BasicMultiClient";
 import { ClientOptions } from "../ClientOptions";
 import { Level2Point } from "../Level2Point";
 import { Level2Snapshot } from "../Level2Snapshots";
@@ -17,9 +18,36 @@ import { Market } from "../Market";
 import { NotImplementedAsyncFn, NotImplementedFn } from "../NotImplementedFn";
 import { Ticker } from "../Ticker";
 import { Trade } from "../Trade";
+import { IClient } from "../IClient";
 
-export class BitfinexClient extends BasicClient {
+export class BitfinexClient extends BasicMultiClient {
+    public options: MultiClientOptions;
+
+    constructor(options: MultiClientOptions = {}) {
+        super();
+        this.options = options;
+        this.hasTickers = true;
+        this.hasTrades = true;
+        this.hasCandles = true;
+        this.hasLevel2Updates = true;
+
+        if (typeof options.marketsPerClient !== 'undefined') {
+          this.marketsPerClient = options.marketsPerClient;
+        }
+    }
+
+    protected _createBasicClient(): IClient {
+        return new BitfinexSingleClient({ ...this.options, parent: this });
+    }
+}
+
+interface SingleClientOptions extends ClientOptions {
+  parent: BitfinexClient;
+}
+
+export class BitfinexSingleClient extends BasicClient {
     public l2UpdateDepth: number;
+    public parent: BitfinexClient;
 
     protected _channels: any;
     protected _sendSubCandles = NotImplementedFn;
@@ -33,7 +61,8 @@ export class BitfinexClient extends BasicClient {
         wssPath = "wss://api.bitfinex.com/ws/2",
         watcherMs,
         l2UpdateDepth = 250,
-    }: ClientOptions = {}) {
+        parent,
+    }: SingleClientOptions) {
         super(wssPath, "Bitfinex", undefined, watcherMs);
         this._channels = {};
 
@@ -42,6 +71,7 @@ export class BitfinexClient extends BasicClient {
         this.hasLevel2Updates = true;
         this.hasLevel3Updates = true;
         this.l2UpdateDepth = l2UpdateDepth;
+        this.parent = parent;
     }
 
     protected _onConnected() {
