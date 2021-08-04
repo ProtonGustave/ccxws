@@ -105,7 +105,12 @@ export abstract class BasicMultiClient extends EventEmitter {
     public async unsubscribeTrades(market: Market) {
         if (!this.hasTrades) return;
         if (this._marketsToClients.has(market.id)) {
-            const client = await this._marketsToClients.get(market.id);
+            const clientPromise = this._marketsToClients.get(market.id);
+            const client = await clientPromise;
+
+            this._marketsToClients.delete(market.id);
+            this._clientsMarkets.get(clientPromise).delete(market.id);
+
             client.unsubscribeTrades(market);
         }
     }
