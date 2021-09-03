@@ -13,7 +13,7 @@ const NotImplementedFn_1 = require("../NotImplementedFn");
 const Ticker_1 = require("../Ticker");
 const Trade_1 = require("../Trade");
 class ZbClient extends BasicClient_1.BasicClient {
-    constructor({ wssPath = "wss://api.zb.today/websocket", watcherMs } = {}) {
+    constructor({ wssPath = "wss://api.zb.com/websocket", watcherMs } = {}) {
         super(wssPath, "ZB", undefined, watcherMs);
         this._sendSubCandles = NotImplementedFn_1.NotImplementedFn;
         this._sendUnsubCandles = NotImplementedFn_1.NotImplementedFn;
