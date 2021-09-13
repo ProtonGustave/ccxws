@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.KucoinClient = void 0;
+exports.KucoinSingleClient = exports.KucoinClient = void 0;
 /* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -31,6 +31,7 @@ exports.KucoinClient = void 0;
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-implied-eval */
 const BasicClient_1 = require("../BasicClient");
+const BasicMultiClient_1 = require("../BasicMultiClient");
 const CandlePeriod_1 = require("../CandlePeriod");
 const Util_1 = require("../Util");
 const crypto_1 = __importDefault(require("crypto"));
@@ -46,15 +47,25 @@ const Throttle_1 = require("../flowcontrol/Throttle");
 const Level3Point_1 = require("../Level3Point");
 const Level3Snapshot_1 = require("../Level3Snapshot");
 const NotImplementedFn_1 = require("../NotImplementedFn");
-/**
- * Kucoin client has a hard limit of 100 subscriptions per socket connection.
- * When more than 100 subscriptions are made on a single socket it will generate
- * an error that says "509: exceed max subscription count limitation of 100 per session".
- * To work around this will require creating multiple clients if you makem ore than 100
- * subscriptions.
- */
-class KucoinClient extends BasicClient_1.BasicClient {
-    constructor({ wssPath, watcherMs, sendThrottleMs = 10, restThrottleMs = 250, } = {}) {
+class KucoinClient extends BasicMultiClient_1.BasicMultiClient {
+    constructor(options = {}) {
+        super();
+        this.options = options;
+        this.hasTickers = true;
+        this.hasTrades = true;
+        this.hasCandles = true;
+        this.hasLevel2Updates = true;
+        if (typeof options.marketsPerClient !== 'undefined') {
+            this.marketsPerClient = options.marketsPerClient;
+        }
+    }
+    _createBasicClient() {
+        return new KucoinSingleClient({ ...this.options, parent: this });
+    }
+}
+exports.KucoinClient = KucoinClient;
+class KucoinSingleClient extends BasicClient_1.BasicClient {
+    constructor({ wssPath, watcherMs, l2UpdateDepth = 250, parent, sendThrottleMs = 10, restThrottleMs = 250, }) {
         super(wssPath, "KuCoin", undefined, watcherMs);
         this._sendSubLevel2Snapshots = NotImplementedFn_1.NotImplementedFn;
         this._sendUnsubLevel2Snapshots = NotImplementedFn_1.NotImplementedFn;
@@ -726,7 +737,7 @@ class KucoinClient extends BasicClient_1.BasicClient {
         }
     }
 }
-exports.KucoinClient = KucoinClient;
+exports.KucoinSingleClient = KucoinSingleClient;
 function candlePeriod(period) {
     switch (period) {
         case CandlePeriod_1.CandlePeriod._1m:

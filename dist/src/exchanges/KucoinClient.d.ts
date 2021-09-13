@@ -1,13 +1,24 @@
 /// <reference types="node" />
 import { BasicClient } from "../BasicClient";
+import { BasicMultiClient, MultiClientOptions } from "../BasicMultiClient";
 import { CandlePeriod } from "../CandlePeriod";
 import { ClientOptions } from "../ClientOptions";
 import { CancelableFn } from "../flowcontrol/Fn";
 import { Market } from "../Market";
+import { IClient } from "../IClient";
 export declare type KucoinClientOptions = ClientOptions & {
     sendThrottleMs?: number;
     restThrottleMs?: number;
 };
+export declare type KucoinMultiClientOptions = MultiClientOptions & {
+    sendThrottleMs?: number;
+    restThrottleMs?: number;
+};
+export declare class KucoinClient extends BasicMultiClient {
+    options: MultiClientOptions;
+    constructor(options?: KucoinMultiClientOptions);
+    protected _createBasicClient(): IClient;
+}
 /**
  * Kucoin client has a hard limit of 100 subscriptions per socket connection.
  * When more than 100 subscriptions are made on a single socket it will generate
@@ -15,7 +26,10 @@ export declare type KucoinClientOptions = ClientOptions & {
  * To work around this will require creating multiple clients if you makem ore than 100
  * subscriptions.
  */
-export declare class KucoinClient extends BasicClient {
+interface SingleClientOptions extends KucoinClientOptions {
+    parent: KucoinClient;
+}
+export declare class KucoinSingleClient extends BasicClient {
     candlePeriod: CandlePeriod;
     readonly restThrottleMs: number;
     readonly connectInitTimeoutMs: number;
@@ -25,7 +39,7 @@ export declare class KucoinClient extends BasicClient {
     protected _requestLevel2Snapshot: CancelableFn;
     protected _requestLevel3Snapshot: CancelableFn;
     protected _pingInterval: NodeJS.Timeout;
-    constructor({ wssPath, watcherMs, sendThrottleMs, restThrottleMs, }?: KucoinClientOptions);
+    constructor({ wssPath, watcherMs, l2UpdateDepth, parent, sendThrottleMs, restThrottleMs, }: SingleClientOptions);
     protected _beforeClose(): void;
     protected _beforeConnect(): void;
     protected _startPing(): void;
@@ -231,3 +245,4 @@ export declare class KucoinClient extends BasicClient {
     protected _processL3UpdateUpdate(msg: any): void;
     protected __requestLevel3Snapshot(market: Market): Promise<void>;
 }
+export {};

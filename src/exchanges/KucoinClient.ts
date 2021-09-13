@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-implied-eval */
 import { BasicClient } from "../BasicClient";
+import { BasicMultiClient, MultiClientOptions } from "../BasicMultiClient";
 import { CandlePeriod } from "../CandlePeriod";
 import { ClientOptions } from "../ClientOptions";
 import { CancelableFn } from "../flowcontrol/Fn";
@@ -24,11 +25,38 @@ import { throttle } from "../flowcontrol/Throttle";
 import { Level3Point } from "../Level3Point";
 import { Level3Snapshot } from "../Level3Snapshot";
 import { NotImplementedFn } from "../NotImplementedFn";
+import { IClient } from "../IClient";
 
 export type KucoinClientOptions = ClientOptions & {
     sendThrottleMs?: number;
     restThrottleMs?: number;
 };
+
+export type KucoinMultiClientOptions = MultiClientOptions & {
+    sendThrottleMs?: number;
+    restThrottleMs?: number;
+};
+
+export class KucoinClient extends BasicMultiClient {
+    public options: MultiClientOptions;
+
+    constructor(options: KucoinMultiClientOptions = {}) {
+        super();
+        this.options = options;
+        this.hasTickers = true;
+        this.hasTrades = true;
+        this.hasCandles = true;
+        this.hasLevel2Updates = true;
+
+        if (typeof options.marketsPerClient !== 'undefined') {
+          this.marketsPerClient = options.marketsPerClient;
+        }
+    }
+
+    protected _createBasicClient(): IClient {
+        return new KucoinSingleClient({ ...this.options, parent: this });
+    }
+}
 
 /**
  * Kucoin client has a hard limit of 100 subscriptions per socket connection.
@@ -37,7 +65,11 @@ export type KucoinClientOptions = ClientOptions & {
  * To work around this will require creating multiple clients if you makem ore than 100
  * subscriptions.
  */
-export class KucoinClient extends BasicClient {
+interface SingleClientOptions extends KucoinClientOptions {
+  parent: KucoinClient;
+}
+
+export class KucoinSingleClient extends BasicClient {
     public candlePeriod: CandlePeriod;
     public readonly restThrottleMs: number;
     public readonly connectInitTimeoutMs: number;
@@ -52,9 +84,11 @@ export class KucoinClient extends BasicClient {
     constructor({
         wssPath,
         watcherMs,
+        l2UpdateDepth = 250,
+        parent,
         sendThrottleMs = 10,
         restThrottleMs = 250,
-    }: KucoinClientOptions = {}) {
+    }: SingleClientOptions) {
         super(wssPath, "KuCoin", undefined, watcherMs);
         this.hasTickers = true;
         this.hasTrades = true;
