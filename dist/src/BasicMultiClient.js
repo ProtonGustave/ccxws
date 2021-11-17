@@ -33,7 +33,7 @@ class BasicMultiClient extends events_1.EventEmitter {
         this.hasLevel3Updates = false;
         this.throttleMs = 250;
         this.sem = semaphore_1.default(3); // this can be overriden to allow more or less
-        this.marketsPerClient = 100;
+        this.marketsPerClient = 1;
     }
     async reconnect() {
         for (const client of Array.from(this._clientsMarkets.keys())) {

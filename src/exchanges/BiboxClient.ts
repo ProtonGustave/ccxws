@@ -259,7 +259,7 @@ export class BiboxBasicClient extends BasicClient {
     Manages connections for a single market. A single
     socket is only allowed to work for 20 markets.
    */
-    constructor({ wssPath = "wss://push.bibox.com", watcherMs = 600 * 1000 } = {}) {
+    constructor({ wssPath = "wss://npush.bibox360.com", watcherMs = 600 * 1000 } = {}) {
         super(wssPath, "Bibox");
         this._watcher = new Watcher(this, watcherMs);
         this.hasTickers = true;
