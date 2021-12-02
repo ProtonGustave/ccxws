@@ -152,7 +152,7 @@ class BitfinexSingleClient extends BasicClient_1.BasicClient {
         if (msg[1] === "hb")
             return;
         if (channel.channel === "ticker") {
-            const market = this._tickerSubs.get(channel.pair);
+            const market = this._tickerSubs.get(channel.pair)  || this._tickerSubs.get(channel.symbol);
             if (!market)
                 return;
             this._onTicker(msg, market);
@@ -160,7 +160,7 @@ class BitfinexSingleClient extends BasicClient_1.BasicClient {
         }
         // trades
         if (channel.channel === "trades" && msg[1] === "tu") {
-            const market = this._tradeSubs.get(channel.pair);
+            const market = this._tradeSubs.get(channel.pair) || this._tradeSubs.get(channel.symbol);
             if (!market)
                 return;
             this._onTradeMessage(msg, market);
@@ -168,7 +168,7 @@ class BitfinexSingleClient extends BasicClient_1.BasicClient {
         }
         // level3
         if (channel.channel === "book" && channel.prec === "R0") {
-            const market = this._level3UpdateSubs.get(channel.pair);
+            const market = this._level3UpdateSubs.get(channel.pair) || this._level3UpdateSubs.get(channel.symbol);
             if (!market)
                 return;
             if (Array.isArray(msg[1][0]))
@@ -179,7 +179,7 @@ class BitfinexSingleClient extends BasicClient_1.BasicClient {
         }
         // level2
         if (channel.channel === "book") {
-            const market = this._level2UpdateSubs.get(channel.pair);
+            const market = this._level2UpdateSubs.get(channel.pair) || this._level2UpdateSubs.get(channel.symbol);
             if (!market)
                 return;
             if (Array.isArray(msg[1][0]))
