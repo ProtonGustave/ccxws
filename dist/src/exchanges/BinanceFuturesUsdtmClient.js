@@ -3,12 +3,34 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BinanceFuturesUsdtmClient = void 0;
+exports.BinanceFuturesUsdtmSingleClient = void 0;
 const Level2Point_1 = require("../Level2Point");
 const Level2Snapshots_1 = require("../Level2Snapshots");
 const Level2Update_1 = require("../Level2Update");
 const BinanceBase_1 = require("./BinanceBase");
-class BinanceFuturesUsdtmClient extends BinanceBase_1.BinanceBase {
+const BasicMultiClient_1 = require("../BasicMultiClient");
+
+class BinanceFuturesUsdtmClient extends BasicMultiClient_1.BasicMultiClient {
+  constructor(options = {}) {
+      super();
+      this.options = options;
+      this.hasTickers = true;
+      this.hasTrades = true;
+      this.hasCandles = true;
+      this.hasLevel2Updates = true;
+      this.hasLevel2Snapshots=true;
+      this.marketsPerClient = 100;
+      if (typeof options.marketsPerClient !== 'undefined') {
+          this.marketsPerClient = options.marketsPerClient;
+      }
+  }
+  _createBasicClient() {
+      return new BinanceFuturesUsdtmSingleClient({ ...this.options, parent: this });
+  }
+}
+exports.BinanceFuturesUsdtmClient = BinanceFuturesUsdtmClient;
+
+class BinanceFuturesUsdtmSingleClient extends BinanceBase_1.BinanceBase {
     constructor({ useAggTrades = true, requestSnapshot = true, socketBatchSize = 200, socketThrottleMs = 1000, restThrottleMs = 1000, l2snapshotSpeed = "100ms", l2updateSpeed = "0ms", watcherMs, } = {}) {
         super({
             name: "Binance Futures USDT-M",
@@ -124,5 +146,5 @@ class BinanceFuturesUsdtmClient extends BinanceBase_1.BinanceBase {
         });
     }
 }
-exports.BinanceFuturesUsdtmClient = BinanceFuturesUsdtmClient;
+exports.BinanceFuturesUsdtmSingleClient = BinanceFuturesUsdtmSingleClient;
 //# sourceMappingURL=BinanceFuturesUsdtmClient.js.map

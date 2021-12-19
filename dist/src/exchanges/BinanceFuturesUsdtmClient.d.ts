@@ -2,7 +2,20 @@ import { Level2Snapshot } from "../Level2Snapshots";
 import { Level2Update } from "../Level2Update";
 import { Market } from "../Market";
 import { BinanceBase, BinanceClientOptions } from "./BinanceBase";
-export declare class BinanceFuturesUsdtmClient extends BinanceBase {
+import { BasicMultiClient, MultiClientOptions } from "../BasicMultiClient";
+import { IClient } from "../IClient";
+
+export declare class BinanceFuturesUsdtmClient extends BasicMultiClient {
+    options: MultiClientOptions;
+    constructor(options?: MultiClientOptions);
+    protected _createBasicClient(): IClient;
+}
+
+interface SingleClientOptions extends BinanceClientOptions {
+    parent: BinanceFuturesUsdtmClient;
+}
+export declare class BinanceFuturesUsdtmSingleClient extends BinanceBase {
+  parent: BinanceFuturesUsdtmClient; 
     constructor({ useAggTrades, requestSnapshot, socketBatchSize, socketThrottleMs, restThrottleMs, l2snapshotSpeed, l2updateSpeed, watcherMs, }?: BinanceClientOptions);
     /**
    * Custom construction for a partial depth update. This deviates from
