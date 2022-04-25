@@ -42,7 +42,7 @@ const Trade_1 = require("../Trade");
  */
 class OkexClient extends BasicClient_1.BasicClient {
     constructor({ wssPath = "wss://ws.okx.com:8443/ws/v5/public", watcherMs, sendThrottleMs = 20, } = {}) {
-        super(wssPath, "OKEx", undefined, watcherMs);
+        super(wssPath, "OKx", undefined, watcherMs);
         this._sendSubLevel3Snapshots = NotImplementedFn_1.NotImplementedFn;
         this._sendUnsubLevel3Snapshots = NotImplementedFn_1.NotImplementedFn;
         this._sendSubLevel3Updates = NotImplementedFn_1.NotImplementedFn;
